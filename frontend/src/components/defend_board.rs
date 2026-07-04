@@ -68,7 +68,9 @@ pub fn defend_board(props: &DefendBoardProps) -> Html {
 
     let charge_orb = if state.is_charging {
         let r = (state.charge_level * 3.5).max(0.5);
-        let orb_class = if state.charge_level >= 1.0 {
+        let orb_class = if state.charge_level >= 2.0 {
+            "neon-charge-orb level2-charged"
+        } else if state.charge_level >= 1.0 {
             "neon-charge-orb fully-charged"
         } else {
             "neon-charge-orb"
@@ -129,6 +131,11 @@ pub fn defend_board(props: &DefendBoardProps) -> Html {
                     />
                 }
 
+                if state.beam_time > 0 {
+                    <line x1={state.player_x.to_string()} y1="88" x2={state.player_x.to_string()} y2="0" class="neon-level2-beam" />
+                    <line x1={state.player_x.to_string()} y1="88" x2={state.player_x.to_string()} y2="0" class="neon-level2-beam-core" />
+                }
+
                 // Render lasers (cyan neon pulses or massive charge blasts)
                 {
                     for state.lasers.iter().map(|laser| {
@@ -142,15 +149,15 @@ pub fn defend_board(props: &DefendBoardProps) -> Html {
                                 />
                             }
                         } else {
-                            html! {
-                                <line
-                                    x1={laser.x.to_string()}
-                                    y1={laser.y.to_string()}
-                                    x2={laser.x.to_string()}
-                                    y2={(laser.y - 3.0).to_string()}
-                                    class="neon-laser"
-                                />
-                            }
+                             html! {
+                                 <line
+                                     x1={laser.x.to_string()}
+                                     y1={laser.y.to_string()}
+                                     x2={(laser.x - laser.vx * 1.5).to_string()}
+                                     y2={(laser.y - laser.vy * 1.5).to_string()}
+                                     class="neon-laser"
+                                 />
+                             }
                         }
                     })
                 }

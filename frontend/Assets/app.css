@@ -431,6 +431,28 @@ main {
     to { filter: drop-shadow(0 0 10px currentColor); }
 }
 
+.neon-charge-orb.level2-charged {
+    fill: #e879f9;
+    filter: drop-shadow(0 0 15px #e879f9);
+    animation: pulseGlow 0.15s infinite alternate;
+}
+
+.neon-level2-beam {
+    stroke: #f59e0b;
+    stroke-width: 4.5;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 15px #f59e0b) drop-shadow(0 0 30px #ef4444);
+    opacity: 0.85;
+}
+
+.neon-level2-beam-core {
+    stroke: #ffffff;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 3px #ffffff);
+    opacity: 0.95;
+}
+
 /* Hide the touch dpad/buttons on devices with a mouse */
 @media (pointer: fine) {
     .btn-touch {
