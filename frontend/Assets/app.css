@@ -397,6 +397,40 @@ main {
     to { filter: drop-shadow(0 0 12px currentColor); }
 }
 
+.neon-helper-drone {
+    fill: #00ffff;
+    stroke: #00ffff;
+    stroke-width: 0.5;
+    filter: drop-shadow(0 0 5px #00ffff);
+    animation: hoverPulse 0.6s infinite alternate ease-in-out;
+}
+
+.neon-shield-powerup {
+    fill: #10b981;
+    stroke: #ffffff;
+    stroke-width: 0.5;
+    filter: drop-shadow(0 0 7px #10b981);
+    animation: itemPulse 0.4s infinite alternate ease-in-out;
+}
+
+.neon-helper-powerup {
+    fill: #eab308;
+    stroke: #ffffff;
+    stroke-width: 0.5;
+    filter: drop-shadow(0 0 7px #eab308);
+    animation: itemPulse 0.4s infinite alternate ease-in-out;
+}
+
+@keyframes hoverPulse {
+    from { transform: translateY(0px); }
+    to { transform: translateY(-1px); }
+}
+
+@keyframes itemPulse {
+    from { filter: drop-shadow(0 0 4px currentColor); }
+    to { filter: drop-shadow(0 0 10px currentColor); }
+}
+
 /* Hide the touch dpad/buttons on devices with a mouse */
 @media (pointer: fine) {
     .btn-touch {

@@ -21,19 +21,12 @@ pub struct Particle { pub x: f64, pub y: f64, pub vx: f64, pub vy: f64, pub life
 pub struct Star { pub x: f64, pub y: f64, pub speed: f64, pub size: f64 }
 
 #[derive(Clone, Debug, PartialEq)]
+#[rustfmt::skip]
 pub struct GameState {
-    pub player_x: f64,
-    pub lasers: Vec<Laser>,
-    pub threats: Vec<Threat>,
-    pub particles: Vec<Particle>,
-    pub score: u32,
-    pub shield: u32,
-    pub wave: u32,
-    pub status: GameStatus,
-    pub ticks: u64,
-    pub charge_level: f64,
-    pub is_charging: bool,
-    pub stars: Vec<Star>,
+    pub player_x: f64, pub lasers: Vec<Laser>, pub threats: Vec<Threat>, pub particles: Vec<Particle>,
+    pub score: u32, pub shield: u32, pub wave: u32, pub status: GameStatus, pub ticks: u64,
+    pub charge_level: f64, pub is_charging: bool, pub stars: Vec<Star>,
+    pub powerup_x: f64, pub powerup_y: f64, pub powerup_type: u8, pub helper_time: u32,
 }
 
 impl GameState {
@@ -49,6 +42,7 @@ impl GameState {
                 speed: js_sys::Math::random() * 0.45 + 0.15,
                 size: js_sys::Math::random() * 0.45 + 0.15,
             }).collect(),
+            powerup_x: 0.0, powerup_y: 0.0, powerup_type: 0, helper_time: 0,
         }
     }
 
@@ -69,6 +63,31 @@ impl GameState {
             if s.y > 100.0 { s.y = 0.0; s.x = js_sys::Math::random() * 100.0; }
         }
 
+        // Helper Drone shooting and logic
+        if self.helper_time > 0 {
+            self.helper_time -= 1;
+            if self.helper_time % 18 == 0 {
+                self.lasers.push(Laser { x: self.player_x - 5.0, y: 92.0, is_charge_shot: false, radius: 0.8 });
+                self.lasers.push(Laser { x: self.player_x + 5.0, y: 92.0, is_charge_shot: false, radius: 0.8 });
+            }
+        }
+
+        // Power-up spawning and movement
+        if self.powerup_type > 0 {
+            self.powerup_y += 0.55;
+            if self.powerup_y > 100.0 { self.powerup_type = 0; }
+            else if self.powerup_y >= 90.0 && self.powerup_y <= 95.0 && (self.powerup_x - self.player_x).abs() < 5.0 {
+                if self.powerup_type == 1 { self.shield = (self.shield + 25).min(100); }
+                else { self.helper_time = 450; }
+                self.spawn_explosion(self.powerup_x, self.powerup_y, 10);
+                self.powerup_type = 0;
+            }
+        } else if self.ticks % 300 == 0 {
+            self.powerup_x = js_sys::Math::random() * 80.0 + 10.0;
+            self.powerup_y = 0.0;
+            self.powerup_type = if js_sys::Math::random() > 0.5 { 1 } else { 2 };
+        }
+
         // Update charge shot status
         if self.is_charging {
             self.charge_level = (self.charge_level + 0.025).min(1.0);
@@ -79,13 +98,7 @@ impl GameState {
                 let py = 87.0 + angle.sin() * dist;
                 let vx = (self.player_x - px) * 0.12;
                 let vy = (87.0 - py) * 0.12;
-                self.particles.push(Particle {
-                    x: px,
-                    y: py,
-                    vx,
-                    vy,
-                    life: 0.8,
-                });
+                self.particles.push(Particle { x: px, y: py, vx, vy, life: 0.8 });
             }
         }
 
@@ -95,51 +108,31 @@ impl GameState {
             let x = js_sys::Math::random() * 90.0 + 5.0;
             let speed = js_sys::Math::random() * 0.4 + 0.3 + (self.wave as f64 * 0.05);
             let size = js_sys::Math::random() * 2.0 + 2.0;
-            self.threats.push(Threat {
-                x,
-                y: 0.0,
-                speed,
-                size,
-            });
+            self.threats.push(Threat { x, y: 0.0, speed, size });
         }
 
-        // Increase wave every 600 ticks
-        if self.ticks.is_multiple_of(600) {
-            self.wave += 1;
-        }
+        if self.ticks.is_multiple_of(600) { self.wave += 1; }
 
         // 2. Move lasers
         for laser in &mut self.lasers {
-            if laser.is_charge_shot {
-                laser.y -= 1.5;
-            } else {
-                laser.y -= 2.0;
-            }
+            if laser.is_charge_shot { laser.y -= 1.5; } else { laser.y -= 2.0; }
         }
         self.lasers.retain(|l| l.y > 0.0);
 
         // 3. Move threats
-        for threat in &mut self.threats {
-            threat.y += threat.speed;
-        }
+        for threat in &mut self.threats { threat.y += threat.speed; }
 
-        // Check player and base shield collisions
+        // Check player and base shield collisions (with smaller hit radius = 5.0)
         let old_threats = std::mem::take(&mut self.threats);
         let mut new_threats = Vec::new();
         for threat in old_threats {
-            if threat.y >= 90.0 && threat.y <= 94.0 && (threat.x - self.player_x).abs() < 6.0 {
-                // Collided with player ship
+            if threat.y >= 90.0 && threat.y <= 95.0 && (threat.x - self.player_x).abs() < 5.0 {
                 self.shield = self.shield.saturating_sub(20);
                 self.spawn_explosion(threat.x, threat.y, 10);
-                if self.shield == 0 {
-                    self.status = GameStatus::Lost;
-                }
+                if self.shield == 0 { self.status = GameStatus::Lost; }
             } else if threat.y >= 100.0 {
-                // Slipped past player, hits orbital station shields
                 self.shield = self.shield.saturating_sub(5);
-                if self.shield == 0 {
-                    self.status = GameStatus::Lost;
-                }
+                if self.shield == 0 { self.status = GameStatus::Lost; }
             } else {
                 new_threats.push(threat);
             }

@@ -13,22 +13,55 @@ pub fn defend_board(props: &DefendBoardProps) -> Html {
     let ship_points = if state.status == GameStatus::Playing {
         let px = state.player_x;
         Some(format!(
-            "{},87 {},89 {},91 {},93 {},95 {},93 {},95 {},93 {},95 {},93 {},95 {},93 {},91 {},89",
+            "{},89 {},90.5 {},92 {},93.5 {},95 {},93.5 {},95 {},93.5 {},95 {},93.5 {},95 {},93.5 {},92 {},90.5",
             px,
-            px - 1.0,
-            px - 1.0,
-            px - 4.0,
-            px - 4.0,
-            px - 1.0,
-            px - 1.0,
+            px - 0.7,
+            px - 0.7,
+            px - 3.0,
+            px - 3.0,
+            px - 0.7,
+            px - 0.7,
             px,
-            px + 1.0,
-            px + 1.0,
-            px + 4.0,
-            px + 4.0,
-            px + 1.0,
-            px + 1.0
+            px + 0.7,
+            px + 0.7,
+            px + 3.0,
+            px + 3.0,
+            px + 0.7,
+            px + 0.7
         ))
+    } else {
+        None
+    };
+
+    let drone_points = if state.helper_time > 0 {
+        let px = state.player_x;
+        let left = format!("{},91.5 {},93.5 {},93.5", px - 5.5, px - 6.7, px - 4.3);
+        let right = format!("{},91.5 {},93.5 {},93.5", px + 5.5, px + 4.3, px + 6.7);
+        Some((left, right))
+    } else {
+        None
+    };
+
+    let powerup_points = if state.powerup_type > 0 {
+        let px = state.powerup_x;
+        let py = state.powerup_y;
+        let pts = format!(
+            "{},{} {},{} {},{} {},{}",
+            px,
+            py - 2.5,
+            px + 2.5,
+            py,
+            px,
+            py + 2.5,
+            px - 2.5,
+            py
+        );
+        let class = if state.powerup_type == 1 {
+            "neon-shield-powerup"
+        } else {
+            "neon-helper-powerup"
+        };
+        Some((pts, class))
     } else {
         None
     };
@@ -78,10 +111,19 @@ pub fn defend_board(props: &DefendBoardProps) -> Html {
                     />
                 }
 
+                if let Some((left, right)) = drone_points {
+                    <polygon points={left} class="neon-helper-drone" />
+                    <polygon points={right} class="neon-helper-drone" />
+                }
+
+                if let Some((points, class)) = powerup_points {
+                    <polygon points={points} class={class} />
+                }
+
                 if let Some((r, orb_class)) = charge_orb {
                     <circle
                         cx={state.player_x.to_string()}
-                        cy="86"
+                        cy="88"
                         r={r.to_string()}
                         class={orb_class}
                     />
