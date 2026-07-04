@@ -1,0 +1,143 @@
+//! View layer for the root [`App`] component.
+//!
+//! Composes the [`Header`], body content (either [`Login`] or
+//! [`SnakeGame`]), and [`Footer`] inside a [`LocaleContext`] provider so
+//! every descendant can call `ctx.t(...)` for translations.
+
+use crate::app::{App, Msg};
+use crate::components::footer::Footer;
+use crate::components::header::Header;
+use crate::components::pin::Login;
+use crate::components::defend_game::DefendGame;
+use shared_core::i18n::Language;
+use yew::prelude::*;
+
+impl App {
+    /// Renders the full application shell.
+    ///
+    /// When the user is not authenticated we mount [`Login`]; once they
+    /// pass the PIN gate the body becomes [`DefendGame`]. The
+    /// `?redirect=...` query parameter is honoured after a successful
+    /// login by rewriting `history.replace_state` so the browser URL
+    /// matches the target.
+    pub fn view_app(&self, ctx: &Context<Self>) -> Html {
+        let locale_on_change = {
+            let link = ctx.link().clone();
+            Callback::from(move |new_lang: String| {
+                link.send_message(Msg::SwitchLanguage(new_lang));
+            })
+        };
+        let locale_context = crate::i18n::LocaleContext {
+            current: self.locale_state.clone(),
+            on_change: locale_on_change,
+        };
+
+        let toggle_theme = ctx.link().callback(|_| Msg::ToggleTheme);
+        let on_logout = ctx.link().callback(|_| Msg::Logout);
+
+        let content_class = if self.authenticated {
+            "app-body"
+        } else {
+            "container"
+        };
+
+        html! {
+            <ContextProvider<crate::i18n::LocaleContext> context={locale_context}>
+                <Header
+                    site_title={self.site_title.clone()}
+                    theme={self.theme.clone()}
+                    language={Language::from_code(&self.locale_state)}
+                    toggle_theme={toggle_theme}
+                    on_language_change={
+                        let link = ctx.link().clone();
+                        Callback::from(move |lang: Language| {
+                            link.send_message(Msg::SwitchLanguage(lang.code().to_string()));
+                        })
+                    }
+                    is_authenticated={self.authenticated}
+                    pin_required={self.is_pin_required}
+                    on_logout={on_logout}
+                    on_print={Some(ctx.link().callback(|_| Msg::Print))}
+                    print_disabled={self.is_pin_required && !self.authenticated}
+                    enable_translation={self.enable_translation}
+                    enable_themes={self.enable_themes}
+                    enable_print={self.enable_print}
+                    version={Some(self.app_version.clone())}
+                />
+                <div class={content_class}>
+                    {if !self.authenticated {
+                        html! {
+                            <Login
+                                on_login_success={
+                                     let link = ctx.link().clone();
+                                     Callback::from(move |show_notification: bool| {
+                                         link.send_message(Msg::SetAuthenticated {
+                                             auth: true,
+                                             show_notification,
+                                         });
+                                         Self::apply_redirect_query();
+                                     })
+                                 }
+                                on_status_change={
+                                    let link = ctx.link().clone();
+                                    Callback::from(move |status| {
+                                        link.send_message(Msg::SetStatus(status))
+                                    })
+                                }
+                            />
+                        }
+                    } else {
+                        html! {
+                            <main>
+                                <DefendGame
+                                    on_status={
+                                        let link = ctx.link().clone();
+                                        Callback::from(move |status| {
+                                            link.send_message(Msg::SetStatus(status))
+                                        })
+                                    }
+                                />
+                            </main>
+                        }
+                    }}
+                </div>
+                <Footer version={self.app_version.clone()} show_github={self.show_github}>
+                    {
+                        if let Some((msg, cls)) = &self.active_notification {
+                            html! { <div class={format!("footer-status-text {}", cls)}>{ msg }</div> }
+                        } else {
+                            html! { <div class="footer-status-text success">{"Ready"}</div> }
+                        }
+                    }
+                </Footer>
+            </ContextProvider<crate::i18n::LocaleContext>>
+        }
+    }
+
+    /// Reads the `redirect` query parameter from `window.location.search`
+    /// and rewrites the URL via `history.replace_state`. Only accepts
+    /// same-origin paths (`/foo`, not `//evil.com/foo`).
+    fn apply_redirect_query() {
+        let Some(win) = web_sys::window() else {
+            return;
+        };
+        let loc = win.location();
+        let search = loc.search().unwrap_or_default();
+        let mut redirect_url = "/".to_string();
+        if let Ok(params) = web_sys::UrlSearchParams::new_with_str(&search)
+            && let Some(r) = params.get("redirect")
+            && !r.is_empty()
+            && r.starts_with('/')
+            && !r.starts_with("//")
+        {
+            redirect_url = r;
+        }
+        if let Ok(history) = win.history() {
+            let _ = history.replace_state_with_url(
+                &wasm_bindgen::JsValue::NULL,
+                "",
+                Some(&redirect_url),
+            );
+        }
+    }
+}

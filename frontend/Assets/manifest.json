@@ -1,0 +1,19 @@
+{
+  "background_color": "#000000",
+  "description": "An orbital hazard sector defendner",
+  "display": "standalone",
+  "icons": [
+    { "sizes": "192x192", "src": "favicon.png", "type": "image/png" },
+    { "sizes": "512x512", "src": "favicon.png", "type": "image/png" }
+  ],
+  "lang": "en",
+  "dir": "ltr",
+  "name": "Defend",
+  "orientation": "any",
+  "prefer_related_applications": false,
+  "short_name": "Defend",
+  "start_url": "/",
+  "theme_color": "#000000",
+  "categories": ["games", "entertainment"],
+  "screenshots": []
+}
