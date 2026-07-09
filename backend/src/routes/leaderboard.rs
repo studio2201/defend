@@ -120,8 +120,9 @@ pub async fn submit_score(
     let list = data.entry(req.category.clone()).or_insert_with(Vec::new);
     list.push(entry);
 
-    // Sort ascending: lower score (time) is better!
-    list.sort_by_key(|e| e.score);
+    // Sort descending: higher score is better (kills / progress).
+    // (Ascending is correct for time-attack games like scan, not defend.)
+    list.sort_by_key(|e| std::cmp::Reverse(e.score));
     list.truncate(MAX_LEADERBOARD_ENTRIES);
 
     let content = serde_json::to_string_pretty(&data)?;
