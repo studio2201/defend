@@ -152,12 +152,12 @@ dependencies = [
 
 [[package]]
 name = "backend"
-version = "0.1.14"
+version = "0.1.20"
 dependencies = [
  "axum",
  "axum-extra",
  "chrono",
- "constant_time_eq",
+ "constant_time_eq 0.5.0",
  "cookie",
  "dotenvy",
  "percent-encoding",
@@ -283,6 +283,12 @@ name = "constant_time_eq"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c74b8349d32d297c9134b8c88677813a227df8f779daa29bfc29c183fe3dca6"
+
+[[package]]
+name = "constant_time_eq"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a1ec0cfec728a79a5109075543131387f911cb4d07716436d7ae20533657a96"
 
 [[package]]
 name = "cookie"
@@ -434,7 +440,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.1.14"
+version = "0.1.20"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -1598,7 +1604,7 @@ source = "git+https://github.com/UberMetroid/shared-assets?tag=v3.0.19#2c5b0659e
 dependencies = [
  "anyhow",
  "axum",
- "constant_time_eq",
+ "constant_time_eq 0.3.1",
  "dotenvy",
  "http-body-util",
  "ipnet",
@@ -1617,7 +1623,7 @@ name = "shared-core"
 version = "3.0.19"
 source = "git+https://github.com/UberMetroid/shared-assets?tag=v3.0.19#2c5b0659ef7bcda53bec6d9c856c57dea9d06ee9"
 dependencies = [
- "constant_time_eq",
+ "constant_time_eq 0.3.1",
  "serde",
 ]
 
