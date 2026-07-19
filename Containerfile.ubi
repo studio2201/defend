@@ -121,6 +121,7 @@ ENV PORT=4504 \
     RUST_LOG=info \
     DEFEND_DATA_DIR=/config
 
+
 EXPOSE 4504
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
