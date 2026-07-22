@@ -13,7 +13,7 @@
   <Category>Game:Arcade Network:Web</Category>
   <WebUI>http://[IP]:[PORT:4504]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/studio2201/unraid-templates/master/templates/defend.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/studio2201/unraid-templates/master/icons/defend.png</Icon>
+  <Icon>https://raw.githubusercontent.com/studio2201/.github/master/profile/assets/defend.png</Icon>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
